@@ -51,6 +51,8 @@ class spinalhdl(Generator):
       path = None
 
       for cmd in command:
+        print("INFO: Checking for... " + cmd)
+        
         path = shutil.which(cmd)
 
         command = [cmd]
@@ -59,9 +61,9 @@ class spinalhdl(Generator):
           print("INFO: Command, " + cmd + " found.")
           
           result = subprocess.run([cmd, '-V'], capture_output=True, text=True)
-          print("INFO:", result.stdout)
+          print("INFO:", result.stdout.partition('\n')[0])
           try:
-            if(result.stdout.find(version) < 0):
+            if(result.stdout.partition('\n')[0].find(version) < 0):
               raise ValueError()
           except:
             print("ERROR: Version " + version + " does not match " + result.stdout)
