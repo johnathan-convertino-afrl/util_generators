@@ -40,13 +40,13 @@ class spinalhdl(Generator):
     def run(self):
       #get dirrrs
       src_dir           = self.config.get('src_dir')
+      version           = self.config.get('version', '1.10.1')
       build_args        = self.config.get('build_args')
-      sbt_archive_url   = self.config.get('sbt_tgz_archive_url')
 
       command = [self.files_root + "/tools/sbt/bin/sbt", "sbt"]
 
-      if sbt_archive_url is not None:
-        command = [command[0]]
+      # if sbt_archive_url is not None:
+      #   command = [command[0]]
 
       path = None
 
@@ -57,30 +57,41 @@ class spinalhdl(Generator):
 
         if path is not None:
           print("INFO: Command, " + cmd + " found.")
+          
+          result = subprocess.run([cmd, '-V'], capture_output=True, text=True)
+          print("INFO:", result.stdout)
+          try:
+            if(result.stdout.find(version) < 0):
+              raise ValueError()
+          except:
+            print("ERROR: Version " + version + " does not match " + result.stdout)
+            exit(1)
           break
 
 
       #if none, download tar, extract, and change path to it.
       if path is None:
-        if sbt_archive_url is None:
-          print("ERROR: Command sbt not found, no url to download archives for install")
-          exit(1)
-
-        print("INFO: Command sbt not found, downloading archives and installing locally")
-
-        if os.path.isdir(self.files_root + "/archives"):
-          shutil.rmtree(self.files_root + "/archives")
-
-        if os.path.isdir(self.files_root + "/tools"):
-          shutil.rmtree(self.files_root + "/tools")
-
-        os.makedirs(self.files_root + "/archives", exist_ok=True)
-        os.makedirs(self.files_root + "/archives/sbt/", exist_ok=True)
-
-        urllib.request.urlretrieve(sbt_archive_url, self.files_root + "/archives/sbt/sbt.tar.gz")
-
-        with tarfile.open(self.files_root + "/archives/sbt/sbt.tar.gz","r") as tar_archive:
-          tar_archive.extractall(self.files_root + "/tools/")
+        print(f"INFO: Command sbt not found on the system or at ${command}")
+        exit(1)
+        # if sbt_archive_url is None:
+        #   print("ERROR: Command sbt not found, no url to download archives for install")
+        #   exit(1)
+        # 
+        # print("INFO: Command sbt not found, downloading archives and installing locally")
+        # 
+        # if os.path.isdir(self.files_root + "/archives"):
+        #   shutil.rmtree(self.files_root + "/archives")
+        # 
+        # if os.path.isdir(self.files_root + "/tools"):
+        #   shutil.rmtree(self.files_root + "/tools")
+        # 
+        # os.makedirs(self.files_root + "/archives", exist_ok=True)
+        # os.makedirs(self.files_root + "/archives/sbt/", exist_ok=True)
+        # 
+        # urllib.request.urlretrieve(sbt_archive_url, self.files_root + "/archives/sbt/sbt.tar.gz")
+        # 
+        # with tarfile.open(self.files_root + "/archives/sbt/sbt.tar.gz","r") as tar_archive:
+        #   tar_archive.extractall(self.files_root + "/tools/")
 
         # os.makedirs(self.files_root + "/archives/jre/")
         #
